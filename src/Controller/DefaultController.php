@@ -3,7 +3,6 @@
 namespace App\Controller;
 
 use App\Entity\Rule;
-use App\Message\IncomingRequestMessage;
 use App\Entity\Query;
 use App\Messenger\TaskMessage;
 use Doctrine\ORM\EntityManagerInterface;
@@ -20,6 +19,12 @@ class DefaultController extends AbstractController
         private readonly MessageBusInterface $bus,
         private readonly EntityManagerInterface $entityManager,
     ) {
+    }
+
+    #[Route('/', name: 'home')]
+    public function index(): Response
+    {
+        return new Response('OK.');
     }
 
     #[Route(path: '/key/{rule}', name: 'relay_id', methods: ['POST', 'GET'])]
