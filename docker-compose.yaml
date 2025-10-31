@@ -1,0 +1,62 @@
+services:
+    localstack:
+        image: localstack/localstack:latest
+        environment:
+            - SERVICES=sqs
+            - EDGE_PORT=4566
+        ports:
+            - "4566:4566"
+    php:
+        build:
+            context: ./docker/php
+        volumes:
+            - .:/app
+        environment:
+            SERVER_NAME: ":80"
+        ports:
+            - "15080:80"
+#    php:
+#        image: ${IMAGES_PREFIX:-}app-php
+#        environment:
+#            STABILITY: ${STABILITY:-stable}
+#            MERCURE_PUBLISHER_JWT_KEY: ${CADDY_MERCURE_JWT_SECRET:-!ChangeThisMercureHubJWTSecretKey!}
+#            MERCURE_SUBSCRIBER_JWT_KEY: ${CADDY_MERCURE_JWT_SECRET:-!ChangeThisMercureHubJWTSecretKey!}
+#            MERCURE_URL: ${CADDY_MERCURE_URL:-http://php/.well-known/mercure}
+#            MERCURE_PUBLIC_URL: ${CADDY_MERCURE_PUBLIC_URL:-https://${SERVER_NAME:-localhost}:${HTTPS_PORT:-443}/.well-known/mercure}
+#            MERCURE_JWT_SECRET: ${CADDY_MERCURE_JWT_SECRET:-!ChangeThisMercureHubJWTSecretKey!}
+#        command: ["php-server"]
+#
+#        ports:
+#            - target: 80
+#              published: ${HTTP_PORT:-80}
+#              protocol: tcp
+#            # HTTPS
+#            - target: 443
+#              published: ${HTTPS_PORT:-443}
+#              protocol: tcp
+#            # HTTP/3
+#            - target: 443
+#              published: ${HTTP3_PORT:-443}
+#              protocol: udp
+#        volumes:
+#            - ./docker/caddy/data:/data
+#            - ./docker/caddy/config:/config
+#            - ./var:/app/var
+    mysql:
+        image: mysql:${MYSQL_VERSION:-8}
+        environment:
+            MYSQL_DATABASE: ${MYSQL_DATABASE:-app}
+            MYSQL_RANDOM_ROOT_PASSWORD: "true"
+            MYSQL_PASSWORD: ${MYSQL_PASSWORD:-123123}
+            MYSQL_USER: ${MYSQL_USER:-user}
+        ports:
+            - "15306:3306"
+        healthcheck:
+            test: [ "CMD", "mysqladmin" ,"ping", "-h", "localhost" ]
+            timeout: 5s
+            retries: 5
+            start_period: 60s
+        volumes:
+            #- database_data:/var/lib/mysql:rw
+            # You may use a bind-mounted host directory instead, so that it is harder to accidentally remove the volume and lose all your data!
+            - ./docker/data/db:/var/lib/mysql:rw
