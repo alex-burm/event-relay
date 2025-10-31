@@ -12,6 +12,7 @@ framework:
             async:
                 dsn: '%env(MESSENGER_TRANSPORT_DSN)%'
                 options:
+                    auto_setup: true
                     use_notify: true
                     check_delayed_interval: 60000
                 retry_strategy:
@@ -23,7 +24,12 @@ framework:
         default_bus: messenger.bus.default
 
         buses:
-            messenger.bus.default: []
+            messenger.bus.default:
+                default_middleware: allow_no_handlers
+                middleware:
+                    - doctrine_transaction
+                    - validation
+                    - dispatch_after_current_bus
 
         routing:
             App\Messenger\TaskMessage: async

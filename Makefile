@@ -5,7 +5,7 @@ down:
 	@docker compose down
 
 messenger:
-	@docker compose exec php bin/console messenger:consume --all
+	@docker compose exec php bin/console messenger:consume --all -vv
 
 migrate:
 	@docker compose exec php bin/console doctrine:migrations:migrate -n
