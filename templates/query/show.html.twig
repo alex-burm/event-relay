@@ -1,0 +1,93 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Query {{ query.id|slice(0, 8) }}… — Event Relay{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/codemirror@5/lib/codemirror.min.css">
+    <style>
+        .CodeMirror { border: 1px solid #e5e7eb; border-radius: 6px; height: auto; max-height: 500px; font-size: 0.85rem; }
+    </style>
+{% endblock %}
+
+{% block body %}
+    <div class="mb-4">
+        <a href="{{ path('query_index') }}" class="text-muted small text-decoration-none">&larr; Back to queries</a>
+    </div>
+
+    <h1 class="h4 fw-semibold mb-4">
+        Query
+        <span class="text-muted fw-normal">{{ query.id|slice(0, 8) }}…</span>
+        {% set s = query.status.value %}
+        {% if s == 'done' %}
+            <span class="badge bg-success-subtle text-success ms-2" style="font-size:.7rem;vertical-align:middle">done</span>
+        {% elseif s == 'error' %}
+            <span class="badge bg-danger-subtle text-danger ms-2" style="font-size:.7rem;vertical-align:middle">error</span>
+        {% elseif s == 'waiting' %}
+            <span class="badge bg-warning-subtle text-warning ms-2" style="font-size:.7rem;vertical-align:middle">waiting</span>
+        {% else %}
+            <span class="badge bg-secondary-subtle text-secondary ms-2" style="font-size:.7rem;vertical-align:middle">{{ s }}</span>
+        {% endif %}
+    </h1>
+
+    <div class="content-card p-4 mb-4">
+        <dl class="row mb-0">
+            <dt class="col-sm-3 text-muted fw-medium">ID</dt>
+            <dd class="col-sm-9">{{ query.id }}</dd>
+
+            <dt class="col-sm-3 text-muted fw-medium">Status</dt>
+            <dd class="col-sm-9">{{ query.status.value }}</dd>
+
+            <dt class="col-sm-3 text-muted fw-medium">Rule</dt>
+            <dd class="col-sm-9">{{ query.rule ? query.rule.name : '—' }}</dd>
+
+            <dt class="col-sm-3 text-muted fw-medium">IP</dt>
+            <dd class="col-sm-9">{{ query.ip }}</dd>
+
+            <dt class="col-sm-3 text-muted fw-medium">Method</dt>
+            <dd class="col-sm-9">{{ query.method }}</dd>
+
+            <dt class="col-sm-3 text-muted fw-medium">User-Agent</dt>
+            <dd class="col-sm-9">{{ query.userAgent ?? '—' }}</dd>
+
+            <dt class="col-sm-3 text-muted fw-medium">Content-Type</dt>
+            <dd class="col-sm-9">{{ query.contentType ?? '—' }}</dd>
+
+            <dt class="col-sm-3 text-muted fw-medium">Received</dt>
+            <dd class="col-sm-9">{{ query.receivedAt|date('Y-m-d H:i:s') }}</dd>
+
+            <dt class="col-sm-3 text-muted fw-medium">Updated</dt>
+            <dd class="col-sm-9">{{ query.updatedAt|date('Y-m-d H:i:s') }}</dd>
+
+            <dt class="col-sm-3 text-muted fw-medium">Attempts</dt>
+            <dd class="col-sm-9">{{ query.attempts }}</dd>
+
+            <dt class="col-sm-3 text-muted fw-medium">Exec Time</dt>
+            <dd class="col-sm-9">{{ query.executeTime ?? '—' }}</dd>
+
+            {% if query.error %}
+                <dt class="col-sm-3 text-muted fw-medium">Error</dt>
+                <dd class="col-sm-9"><pre class="mb-0 text-danger small">{{ query.error }}</pre></dd>
+            {% endif %}
+        </dl>
+    </div>
+
+    <div class="content-card p-4">
+        <h2 class="h6 fw-semibold mb-3">Body</h2>
+        <textarea id="bodyEditor">{{ query.body }}</textarea>
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script src="https://cdn.jsdelivr.net/npm/codemirror@5/lib/codemirror.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/codemirror@5/mode/javascript/javascript.min.js"></script>
+    <script>
+        CodeMirror.fromTextArea(document.getElementById('bodyEditor'), {
+            mode: {name: 'javascript', json: true},
+            readOnly: true,
+            lineNumbers: true,
+            lineWrapping: true
+        });
+    </script>
+{% endblock %}

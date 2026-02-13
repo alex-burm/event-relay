@@ -1,0 +1,106 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Dashboard — Event Relay{% endblock %}
+
+{% block body %}
+    <h1 class="h4 fw-semibold mb-4">Dashboard</h1>
+
+    {# Stat cards #}
+    <div class="row g-3 mb-4">
+        <div class="col-sm-6 col-lg-3">
+            <div class="content-card p-3">
+                <div class="small text-muted mb-1">Today</div>
+                <div class="h3 fw-semibold mb-0">{{ countToday }}</div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-lg-3">
+            <div class="content-card p-3">
+                <div class="small text-muted mb-1">Done</div>
+                <div class="h3 fw-semibold mb-0 text-success">{{ countDone }}</div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-lg-3">
+            <div class="content-card p-3">
+                <div class="small text-muted mb-1">Errors</div>
+                <div class="h3 fw-semibold mb-0 text-danger">{{ countError }}</div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-lg-3">
+            <div class="content-card p-3">
+                <div class="small text-muted mb-1">Waiting</div>
+                <div class="h3 fw-semibold mb-0 text-warning">{{ countWaiting }}</div>
+            </div>
+        </div>
+    </div>
+
+    {# Chart #}
+    <div class="content-card p-4 mb-4">
+        <h2 class="h6 fw-semibold mb-3">Queries — Last 7 Days</h2>
+        <canvas id="chartQueries" height="80"></canvas>
+    </div>
+
+    {# Rule stats table #}
+    {% if ruleStats|length > 0 %}
+        <div class="content-card overflow-hidden">
+            <div class="table-responsive">
+                <table class="table mb-0">
+                    <thead>
+                        <tr>
+                            <th class="ps-3 py-3">Rule</th>
+                            <th class="py-3 text-end">Today</th>
+                            <th class="py-3 text-end">Week</th>
+                            <th class="py-3 text-end pe-3">Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for stat in ruleStats %}
+                            <tr>
+                                <td class="ps-3 py-3 fw-medium">{{ stat.name }}</td>
+                                <td class="py-3 text-end">{{ stat.today }}</td>
+                                <td class="py-3 text-end">{{ stat.week }}</td>
+                                <td class="py-3 text-end pe-3">{{ stat.total }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    {% endif %}
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const chartCanvas = document.getElementById('chartQueries');
+            if (!chartCanvas || typeof Chart === 'undefined') {
+                return;
+            }
+
+            new Chart(chartCanvas, {
+                type: 'line',
+                data: {
+                    labels: {{ chartLabels|json_encode|raw }},
+                    datasets: [{
+                        label: 'Queries',
+                        data: {{ chartValues|json_encode|raw }},
+                        borderColor: '#6366f1',
+                        backgroundColor: 'rgba(99,102,241,0.08)',
+                        fill: true,
+                        tension: 0.3,
+                        pointRadius: 4,
+                        pointBackgroundColor: '#6366f1'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { beginAtZero: true, ticks: { precision: 0 } }
+                    }
+                }
+            });
+        });
+    </script>
+{% endblock %}

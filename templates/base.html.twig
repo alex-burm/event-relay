@@ -101,9 +101,21 @@
         {% endblock %}
     </head>
     <body>
-        <nav class="navbar mb-4">
+        <nav class="navbar navbar-expand mb-4">
             <div class="container">
-                <a class="navbar-brand" href="{{ path('rule_index') }}">⚡ Event Relay</a>
+                <a class="navbar-brand" href="{{ path('dashboard') }}">⚡ Event Relay</a>
+                <ul class="navbar-nav flex-row gap-3 ms-4 me-auto">
+                    {% set _route = app.request.attributes.get('_route') %}
+                    <li class="nav-item">
+                        <a class="nav-link{{ _route == 'home' ? ' fw-semibold text-dark' : '' }}" href="{{ path('dashboard') }}">Dashboard</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link{{ _route starts with 'rule_' ? ' fw-semibold text-dark' : '' }}" href="{{ path('rule_index') }}">Rules</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link{{ _route starts with 'query_' ? ' fw-semibold text-dark' : '' }}" href="{{ path('query_index') }}">Queries</a>
+                    </li>
+                </ul>
             </div>
         </nav>
 

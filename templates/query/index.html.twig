@@ -1,0 +1,75 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Queries — Event Relay{% endblock %}
+
+{% block body %}
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h4 fw-semibold mb-0">Queries</h1>
+            <p class="text-muted small mb-0 mt-1">Incoming webhook requests</p>
+        </div>
+    </div>
+
+    <div class="content-card overflow-hidden">
+        {% if queries|length > 0 %}
+            <div class="table-responsive">
+                <table class="table mb-0">
+                    <thead>
+                        <tr>
+                            <th class="ps-3 py-3">Status</th>
+                            <th class="py-3">Rule</th>
+                            <th class="py-3">IP</th>
+                            <th class="py-3">Received</th>
+                            <th class="py-3 text-end pe-3">Exec Time</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for q in queries %}
+                            <tr style="cursor:pointer" onclick="window.location='{{ path('query_show', {id: q.id}) }}'">
+                                <td class="ps-3 py-3">
+                                    {% set s = q.status.value %}
+                                    {% if s == 'done' %}
+                                        <span class="badge bg-success-subtle text-success">done</span>
+                                    {% elseif s == 'error' %}
+                                        <span class="badge bg-danger-subtle text-danger">error</span>
+                                    {% elseif s == 'waiting' %}
+                                        <span class="badge bg-warning-subtle text-warning">waiting</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary-subtle text-secondary">{{ s }}</span>
+                                    {% endif %}
+                                </td>
+                                <td class="py-3 fw-medium">{{ q.rule ? q.rule.name : '—' }}</td>
+                                <td class="py-3 small text-muted">{{ q.ip }}</td>
+                                <td class="py-3 small text-muted">{{ q.receivedAt|date('Y-m-d H:i:s') }}</td>
+                                <td class="py-3 text-end pe-3 small text-muted">{{ q.executeTime ?? '—' }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            {# Pagination #}
+            <div class="d-flex justify-content-between align-items-center px-3 py-3 border-top">
+                <div>
+                    {% if page > 1 %}
+                        <a href="{{ path('query_index', {page: page - 1}) }}" class="btn btn-sm btn-outline-secondary">Prev</a>
+                    {% endif %}
+                </div>
+                <span class="small text-muted">Page {{ page }}</span>
+                <div>
+                    {% if hasNext %}
+                        <a href="{{ path('query_index', {page: page + 1}) }}" class="btn btn-sm btn-outline-secondary">Next</a>
+                    {% endif %}
+                </div>
+            </div>
+        {% else %}
+            <div class="empty-state">
+                <div class="empty-state-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                </div>
+                <p class="fw-medium mb-1">No queries yet</p>
+                <p class="small text-muted mb-0">Queries will appear here when webhooks are received.</p>
+            </div>
+        {% endif %}
+    </div>
+{% endblock %}

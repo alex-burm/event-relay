@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Entity\Rule;
 use App\Entity\Query;
 use App\Messenger\TaskMessage;
+use App\Repository\QueryRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -25,6 +26,53 @@ class DefaultController extends AbstractController
     public function index(): Response
     {
         return new Response('OK.');
+    }
+
+    #[Route('/dashboard', name: 'dashboard')]
+    public function dashboard(): Response
+    {
+        /** @var QueryRepository $repo */
+        $repo = $this->entityManager->getRepository(Query::class);
+
+        $countToday = $repo->countToday();
+        $countByStatus = $repo->countByStatus();
+        $byRuleToday = $repo->countByRuleForPeriod('today');
+        $byRuleWeek = $repo->countByRuleForPeriod('week');
+        $byRuleTotal = $repo->countByRuleForPeriod('total');
+        $chartData = $repo->countByDayLast7Days();
+
+        // Merge rule stats into a single table
+        $ruleNames = [];
+        foreach ([$byRuleToday, $byRuleWeek, $byRuleTotal] as $dataset) {
+            foreach ($dataset as $row) {
+                $ruleNames[$row['rule_name'] ?? '(no rule)'] = true;
+            }
+        }
+
+        $indexByName = fn(array $data) => array_column($data, 'cnt', 'rule_name');
+        $todayMap = $indexByName($byRuleToday);
+        $weekMap = $indexByName($byRuleWeek);
+        $totalMap = $indexByName($byRuleTotal);
+
+        $ruleStats = [];
+        foreach (array_keys($ruleNames) as $name) {
+            $ruleStats[] = [
+                'name' => $name,
+                'today' => $todayMap[$name] ?? 0,
+                'week' => $weekMap[$name] ?? 0,
+                'total' => $totalMap[$name] ?? 0,
+            ];
+        }
+
+        return $this->render('default/dashboard.html.twig', [
+            'countToday' => $countToday,
+            'countDone' => $countByStatus['done'] ?? 0,
+            'countError' => $countByStatus['error'] ?? 0,
+            'countWaiting' => $countByStatus['waiting'] ?? 0,
+            'chartLabels' => array_keys($chartData),
+            'chartValues' => array_values($chartData),
+            'ruleStats' => $ruleStats,
+        ]);
     }
 
     #[Route(path: '/key/{rule}', name: 'relay_id', methods: ['POST', 'GET'])]
