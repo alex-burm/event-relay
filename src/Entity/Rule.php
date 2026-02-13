@@ -2,11 +2,10 @@
 
 namespace App\Entity;
 
-use App\Repository\QueryRepository;
-use App\ValueObject\QueryStatus;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\Types\UuidType;
 use Symfony\Component\Uid\Uuid;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity]
 class Rule
@@ -18,12 +17,15 @@ class Rule
     protected ?Uuid $id = null;
 
     #[ORM\Column(type: 'string')]
+    #[Assert\NotBlank]
     private ?string $name = null;
 
     #[ORM\Column(type: 'string')]
     private ?string $uri = null;
 
     #[ORM\Column(type: 'string')]
+    #[Assert\NotBlank]
+    #[Assert\Url]
     private ?string $callbackUrl = null;
 
     #[ORM\Column(type: 'string')]
@@ -39,6 +41,7 @@ class Rule
     private ?string $contentType = null;
 
     #[ORM\Column(type: 'string')]
+    #[Assert\NotBlank]
     private string $query;
 
     public function getId(): ?Uuid

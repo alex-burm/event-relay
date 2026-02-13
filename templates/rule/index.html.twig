@@ -1,0 +1,90 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Rules — Event Relay{% endblock %}
+
+{% block body %}
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h4 fw-semibold mb-0">Rules</h1>
+            <p class="text-muted small mb-0 mt-1">Manage webhook relay rules</p>
+        </div>
+        <a href="{{ path('rule_create') }}" class="btn btn-dark btn-sm px-3">+ New Rule</a>
+    </div>
+
+    <div class="content-card overflow-hidden">
+        {% if rules|length > 0 %}
+            <div class="table-responsive">
+                <table class="table mb-0">
+                    <thead>
+                        <tr>
+                            <th class="ps-3 py-3">Name</th>
+                            <th class="py-3">Host</th>
+                            <th class="py-3 text-end pe-3" style="width: 195px;"></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for rule in rules %}
+                            <tr>
+                                <td class="ps-3 py-3 fw-medium">{{ rule.name }}</td>
+                                <td class="py-3">
+                                    {% set parsed = rule.callbackUrl ? rule.callbackUrl|split('/')|slice(0, 3)|join('/') : '' %}
+                                    <span class="small text-muted">{{ parsed }}</span>
+                                </td>
+                                <td class="py-3 text-end pe-3">
+                                    <div class="d-inline-flex gap-1 align-items-center">
+                                        <button type="button" class="btn-icon btn-copy-url" data-url="{{ url('relay_id', {rule: rule.id}) }}" title="Copy webhook URL">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+                                        </button>
+                                        <a href="{{ path('rule_edit', {id: rule.id}) }}" class="btn-icon" title="Edit">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
+                                        </a>
+                                        <a href="{{ path('rule_clone', {id: rule.id}) }}" class="btn-icon" title="Clone">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><rect width="13" height="13" x="9" y="9" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                                        </a>
+                                        <form method="post" action="{{ path('rule_delete', {id: rule.id}) }}" class="d-inline" onsubmit="return confirm('Delete «{{ rule.name }}»?')">
+                                            <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ rule.id) }}">
+                                            <button type="submit" class="btn-icon btn-icon-danger" title="Delete">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="empty-state">
+                <div class="empty-state-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>
+                </div>
+                <p class="fw-medium mb-1">No rules yet</p>
+                <p class="small text-muted mb-3">Create your first webhook relay rule.</p>
+                <a href="{{ path('rule_create') }}" class="btn btn-dark btn-sm px-3">Create Rule</a>
+            </div>
+        {% endif %}
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('.btn-copy-url').forEach(function(btn) {
+                btn.addEventListener('click', function() {
+                    var url = this.dataset.url;
+                    navigator.clipboard.writeText(url).then(function() {
+                        var orig = btn.innerHTML;
+                        btn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="none" stroke="#16a34a" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>';
+                        btn.style.borderColor = '#86efac';
+                        setTimeout(function() {
+                            btn.innerHTML = orig;
+                            btn.style.borderColor = '';
+                        }, 1500);
+                    });
+                });
+            });
+        });
+    </script>
+{% endblock %}

@@ -47,7 +47,7 @@ class TaskHandler
             $query->setError($e->getMessage());
             $query->setStatus(QueryStatus::ERROR);
 
-            $this->logger->info('Exception', $ctx);
+            $this->logger->info('Exception — ' . $e->getMessage(), $ctx);
         }
 
         $this->entityManager->flush();

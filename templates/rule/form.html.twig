@@ -1,0 +1,176 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ title }} — Event Relay{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.18/codemirror.min.css">
+    <style>
+        .CodeMirror {
+            border: 1px solid #dee2e6;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            height: auto;
+            min-height: 100px;
+        }
+        .CodeMirror-focused {
+            border-color: #86b7fe;
+            box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+        }
+        .cm-wrapper {
+            position: relative;
+        }
+        .cm-wrapper .cm-status {
+            position: absolute;
+            top: 6px;
+            right: 8px;
+            font-size: 0.65rem;
+            font-weight: 500;
+            padding: 1px 6px;
+            border-radius: 3px;
+            z-index: 10;
+            pointer-events: none;
+        }
+        .cm-status-valid {
+            background: #d1fae5;
+            color: #065f46;
+        }
+        .cm-status-invalid {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+        .cm-status-empty {
+            display: none;
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+    <div class="mb-4">
+        <a href="{{ path('rule_index') }}" class="text-muted text-decoration-none small">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="me-1" viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+            Back to rules
+        </a>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="content-card p-4">
+                <h1 class="h5 fw-semibold mb-4">{{ title }}</h1>
+
+                {{ form_start(form, {attr: {novalidate: 'novalidate'}}) }}
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            {{ form_row(form.name) }}
+                        </div>
+                        <div class="col-md-6">
+                            {{ form_row(form.uri) }}
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-8">
+                            {{ form_row(form.callbackUrl) }}
+                        </div>
+                        <div class="col-md-4">
+                            {{ form_row(form.method) }}
+                        </div>
+                    </div>
+
+                    {{ form_row(form.contentType) }}
+
+                    <div class="mb-3">
+                        {{ form_label(form.headers) }}
+                        <div class="cm-wrapper">
+                            <span class="cm-status"></span>
+                            {{ form_widget(form.headers, {attr: {class: 'cm-json', 'data-cm-mode': 'json'}}) }}
+                        </div>
+                        {{ form_help(form.headers) }}
+                        {{ form_errors(form.headers) }}
+                    </div>
+
+                    <div class="mb-3">
+                        {{ form_label(form.variables) }}
+                        <div class="cm-wrapper">
+                            <span class="cm-status"></span>
+                            {{ form_widget(form.variables, {attr: {class: 'cm-json', 'data-cm-mode': 'json'}}) }}
+                        </div>
+                        {{ form_help(form.variables) }}
+                        {{ form_errors(form.variables) }}
+                    </div>
+
+                    <div class="mb-3">
+                        {{ form_label(form.query) }}
+                        <div class="cm-wrapper">
+                            <span class="cm-status"></span>
+                            {{ form_widget(form.query, {attr: {class: 'cm-json', 'data-cm-mode': 'json'}}) }}
+                        </div>
+                        {{ form_help(form.query) }}
+                        {{ form_errors(form.query) }}
+                    </div>
+
+                    <div class="d-flex gap-2 mt-4 pt-3 border-top">
+                        <button type="submit" class="btn btn-dark px-4">Save</button>
+                        <a href="{{ path('rule_index') }}" class="btn btn-light">Cancel</a>
+                    </div>
+
+                {{ form_end(form) }}
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.18/codemirror.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.18/mode/javascript/javascript.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.18/addon/edit/matchbrackets.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.18/addon/edit/closebrackets.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.18/addon/fold/foldcode.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.18/addon/fold/foldgutter.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.18/addon/fold/brace-fold.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.18/addon/fold/foldgutter.min.css">
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('.cm-json').forEach(function(textarea) {
+            var wrapper = textarea.closest('.cm-wrapper');
+            var statusEl = wrapper.querySelector('.cm-status');
+            var isQuery = textarea.id.includes('query');
+
+            var editor = CodeMirror.fromTextArea(textarea, {
+                mode: {name: 'javascript', json: true},
+                lineNumbers: true,
+                lineWrapping: true,
+                matchBrackets: true,
+                autoCloseBrackets: true,
+                foldGutter: true,
+                gutters: ['CodeMirror-linenumbers', 'CodeMirror-foldgutter'],
+                tabSize: 2,
+                viewportMargin: Infinity
+            });
+
+            editor.setSize(null, isQuery ? '200px' : '120px');
+
+            function validate() {
+                var val = editor.getValue().trim();
+                if (!val) {
+                    statusEl.className = 'cm-status cm-status-empty';
+                    return;
+                }
+                try {
+                    JSON.parse(val);
+                    statusEl.textContent = 'Valid JSON';
+                    statusEl.className = 'cm-status cm-status-valid';
+                } catch(e) {
+                    statusEl.textContent = 'Invalid JSON';
+                    statusEl.className = 'cm-status cm-status-invalid';
+                }
+            }
+
+            editor.on('change', validate);
+            validate();
+        });
+        });
+    </script>
+{% endblock %}
