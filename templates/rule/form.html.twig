@@ -60,6 +60,8 @@
 
                 {{ form_start(form, {attr: {novalidate: 'novalidate'}}) }}
 
+                    {{ form_errors(form) }}
+
                     <div class="row g-3 mb-3">
                         <div class="col-md-6">
                             {{ form_row(form.name) }}
