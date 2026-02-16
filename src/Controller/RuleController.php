@@ -71,7 +71,7 @@ class RuleController extends AbstractController
     {
         $clone = new Rule();
         $clone->setName($rule->getName() . ' (copy)');
-        $clone->setUri($rule->getUri());
+        $clone->setUri(uniqid());
         $clone->setCallbackUrl($rule->getCallbackUrl());
         $clone->setMethod($rule->getMethod());
         $clone->setContentType($rule->getContentType());
